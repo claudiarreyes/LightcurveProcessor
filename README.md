@@ -1,6 +1,6 @@
 # LightcurveProcessor
 
-===NOT READY TO USE ===
+=== NOT READY TO USE ===
 
 LightcurveProcessor is a pipeline for advanced processing of astronomical lightcurves, including:
 - Gap filling and sigma clipping.

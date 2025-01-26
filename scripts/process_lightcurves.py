@@ -1,5 +1,7 @@
 import pandas as pd
 import numpy as np
+from concurrent.futures import ThreadPoolExecutor
+import os
 
 
 def process_lightcurve(file_path, output_dir, time_col='TIME', flux_col='PDCSAP_FLUX',
@@ -27,7 +29,7 @@ def process_lightcurve(file_path, output_dir, time_col='TIME', flux_col='PDCSAP_
     # Load the light curve data
     lc = pd.read_csv(file_path, header=None, usecols=[0, 2], names=[time_col, flux_col], sep='\\s+')
 
-    # Remove rows with NaNs in 'TIME' or 'PDCSAP_FLUX' (normally at the beginning or end)
+    # Remove rows with NaNs in 'TIME' or 'PDCSAP_FLUX' at the beginning or end
     lc = lc.dropna(subset=[time_col, flux_col]).reset_index(drop=True)
     lc_clean = lc.copy()
 
@@ -77,7 +79,7 @@ def process_lightcurve(file_path, output_dir, time_col='TIME', flux_col='PDCSAP_
     f = filled_lc[flux_col].values
 
     # Define the width of the window for local normalization
-    width = filter_window  # Adjust this value as needed
+    width = 10  # Adjust this value as needed
 
     # Initialize an array to store the normalized flux
     f_normalized = np.full_like(f, np.nan)
@@ -109,3 +111,49 @@ def process_lightcurve(file_path, output_dir, time_col='TIME', flux_col='PDCSAP_
     pd.DataFrame(result).to_csv(output_path, index=False)
 
     return output_path
+
+def batch_process_lightcurves(input_dir, output_dir, n_jobs=4, **kwargs):
+    """
+    Batch process lightcurves in a directory using multiprocessing.
+
+    Parameters:
+        input_dir (str): Directory containing input lightcurve files.
+        output_dir (str): Directory to save processed lightcurve files.
+        n_jobs (int): Number of parallel processes to use.
+
+    Returns:
+        list: List of processed file paths.
+    """
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+
+    file_paths = [os.path.join(input_dir, f) for f in os.listdir(input_dir) if f.endswith('.txt')]
+
+    with ThreadPoolExecutor(max_workers=n_jobs) as executor:
+        results = list(executor.map(lambda fp: process_lightcurve(fp, output_dir, **kwargs), file_paths))
+
+    return results
+
+if __name__ == "__main__":
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Batch process lightcurves with gap filling and signal filtering.")
+    parser.add_argument("input_dir", type=str, help="Directory containing input lightcurve files.")
+    parser.add_argument("output_dir", type=str, help="Directory to save processed lightcurve files.")
+    parser.add_argument("--n_jobs", type=int, default=4, help="Number of parallel processes to use. Default is 4.")
+    parser.add_argument("--gap_threshold", type=float, default=1.5 / 24, help="Gap threshold in days. Default is 1.5 hours.")
+    parser.add_argument("--sigma_clip", type=float, default=4, help="Sigma threshold for clipping outliers. Default is 5.")
+    parser.add_argument("--filter_window", type=float, default=10, help="Window size for Gaussian filter in days. Default is 10.")
+
+    args = parser.parse_args()
+
+    processed_files = batch_process_lightcurves(
+        input_dir=args.input_dir,
+        output_dir=args.output_dir,
+        n_jobs=args.n_jobs,
+        gap_threshold=args.gap_threshold,
+        sigma_clip=args.sigma_clip,
+        filter_window=args.filter_window
+    )
+
+    print(f"Processed {len(processed_files)} files. Results saved in {args.output_dir}.")

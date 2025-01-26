@@ -11,7 +11,7 @@ LightcurveProcessor is a pipeline for advanced processing of astronomical lightc
 ## Features
 1. Fill gaps up to 1.5 hours using linear interpolation.
 2. Apply sigma clipping to remove outliers.
-3. Normalize lightcurves using Gaussian filters.
+3. High-pass filtering using consecutive 10-day median.
 4. Concatenate lightcurves of the same target and cadence, fixing gaps > 80 days.
 5. Generate summary tables describing processed files.
 

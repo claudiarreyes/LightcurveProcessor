@@ -27,7 +27,7 @@ def process_lightcurve(file_path, output_dir, time_col='TIME', flux_col='PDCSAP_
     # Load the light curve data
     lc = pd.read_csv(file_path, header=None, usecols=[0, 2], names=[time_col, flux_col], sep='\\s+')
 
-    # Remove rows with NaNs in 'TIME' or 'PDCSAP_FLUX' at the beginning or end
+    # Remove rows with NaNs in 'TIME' or 'PDCSAP_FLUX' (normally at the beginning or end)
     lc = lc.dropna(subset=[time_col, flux_col]).reset_index(drop=True)
     lc_clean = lc.copy()
 
@@ -77,7 +77,7 @@ def process_lightcurve(file_path, output_dir, time_col='TIME', flux_col='PDCSAP_
     f = filled_lc[flux_col].values
 
     # Define the width of the window for local normalization
-    width = 10  # Adjust this value as needed
+    width = filter_window  # Adjust this value as needed
 
     # Initialize an array to store the normalized flux
     f_normalized = np.full_like(f, np.nan)

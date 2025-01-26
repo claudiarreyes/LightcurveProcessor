@@ -54,6 +54,7 @@ Replace `<directory>` with the path to your lightcurve files and `<output_file>`
 
 ## Requirements
 The following Python libraries are required to run the scripts:
+```
 - `numpy`
 - `pandas`
 - `scipy`

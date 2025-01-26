@@ -24,3 +24,18 @@ LightcurveProcessor is a pipeline for advanced processing of astronomical lightc
    ```
    pip install -r requirements.txt
    ```
+### Processing Lightcurves
+1. Prepare a directory of lightcurve files in .txt format.
+2. Process all lightcurves:
+   ```
+   python scripts/process_batch.py <input_dir> <output_dir>
+   ```
+
+### Generating Summary Tables
+1. Run the summary script:
+   ```
+   python scripts/describe_files.py
+   ```
+
+## License
+MIT License
